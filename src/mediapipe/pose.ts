@@ -14,7 +14,6 @@ export const pose = new Pose({
 })
 
 
-
 pose.setOptions({
   modelComplexity: 1,
   smoothLandmarks: true,
