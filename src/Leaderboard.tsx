@@ -1,5 +1,5 @@
 import { useRef } from "react"
-import { pose } from "./mediapipe/pose"
+import { pose } from "./components/pose"
 import { calculateAngle } from "./components/angle"
 import { smooth } from "./components/smooth"
 import { updateCounter } from "./components/counter"
