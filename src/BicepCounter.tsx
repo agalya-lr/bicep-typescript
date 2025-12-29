@@ -12,6 +12,7 @@ export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
+  const [isPoseReady, setIsPoseReady] = useState(false)
   
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
@@ -24,6 +25,17 @@ export default function BicepCounter() {
     leftCountRef.current = leftCount
     rightCountRef.current = rightCount
   }, [leftCount, rightCount])
+
+  // Initialize MediaPipe and wait for it to be ready
+  useEffect(() => {
+    // Wait a bit for MediaPipe to fully initialize
+    const initTimer = setTimeout(() => {
+      setIsPoseReady(true)
+      console.log("MediaPipe Pose is ready")
+    }, 2000) // Give MediaPipe 2 seconds to load assets
+
+    return () => clearTimeout(initTimer)
+  }, [])
 
   // Timer countdown from 60
   useEffect(() => {
@@ -79,8 +91,25 @@ export default function BicepCounter() {
   }, [])
 
   const handleFrame = (video: HTMLVideoElement) => {
-    console.log("sending frame to pose")
-    pose.send({ image: video })
+    // Only send frames if MediaPipe is ready and video has valid dimensions
+    if (!isPoseReady) return
+    
+    // Check if video has valid dimensions (not 0x0)
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      return
+    }
+
+    // Check if video is actually playing and has data
+    if (video.readyState < video.HAVE_ENOUGH_DATA) {
+      return
+    }
+
+    try {
+      pose.send({ image: video })
+    } catch (error) {
+      // Silently catch errors to prevent console spam
+      // MediaPipe will retry on next frame
+    }
   }
 
   return (
