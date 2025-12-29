@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
-import { pose } from "../mediapipe/pose"
-import { calculateAngle } from "../utils/angle"
-import { smooth } from "../utils/smooth"
-import { updateCounter } from "../utils/counter"
-import Webcam from "../webcam"
+import { pose } from "./mediapipe/pose"
+import { calculateAngle } from "./components/angle"
+import { smooth } from "./components/smooth"
+import { updateCounter } from "./components/counter"
+import Webcam from "./webcam"
 
 let leftPrev = 160
 let rightPrev = 160
@@ -25,7 +25,7 @@ export default function BicepCounter() {
   }, [leftCount, rightCount])
 
   useEffect(() => {
-    pose.onResults((results) => {
+    pose.onResults((results: any) => {
       if (!results.poseLandmarks) return
 
       const lm = results.poseLandmarks
