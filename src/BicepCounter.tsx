@@ -28,11 +28,11 @@ export default function BicepCounter() {
 
   // Initialize MediaPipe and wait for it to be ready
   useEffect(() => {
-    // Wait a bit for MediaPipe to fully initialize
+    // Wait longer for MediaPipe to fully initialize and load all assets
     const initTimer = setTimeout(() => {
       setIsPoseReady(true)
-      console.log("MediaPipe Pose is ready")
-    }, 2000) // Give MediaPipe 2 seconds to load assets
+      console.log("MediaPipe Pose is ready - starting frame processing")
+    }, 3000) // Give MediaPipe 3 seconds to load assets and avoid SIMD issues
 
     return () => clearTimeout(initTimer)
   }, [])
@@ -105,6 +105,7 @@ export default function BicepCounter() {
     }
 
     try {
+      // Send video directly to MediaPipe - simple and clean
       pose.send({ image: video })
     } catch (error) {
       // Silently catch errors to prevent console spam
