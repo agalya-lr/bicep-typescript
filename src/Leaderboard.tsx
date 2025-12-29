@@ -1,8 +1,8 @@
 import { useRef } from "react"
-import { pose } from "../mediapipe/pose"
-import { calculateAngle } from "../utils/angle"
-import { smooth } from "../utils/smooth"
-import { updateCounter } from "../utils/counter"
+import { pose } from "./mediapipe/pose"
+import { calculateAngle } from "./components/angle"
+import { smooth } from "./components/smooth"
+import { updateCounter } from "./components/counter"
 
 type LeaderboardEntry = {
   score: number
