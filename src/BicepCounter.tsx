@@ -3,6 +3,7 @@ import { pose } from "./components/pose"
 import { calculateAngle } from "./components/angle"
 import { smooth } from "./components/smooth"
 import { updateCounter } from "./components/counter"
+import { useTimer } from "./components/timer"
 import Webcam from "./webcam"
 
 let leftPrev = 160
@@ -11,7 +12,7 @@ let rightPrev = 160
 export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(60)
+  const { timeLeft } = useTimer(60, true) // Use the timer hook
   const [isPoseReady, setIsPoseReady] = useState(false)
   
   const leftStageRef = useRef<"up" | "down">("down")
@@ -37,20 +38,20 @@ export default function BicepCounter() {
     return () => clearTimeout(initTimer)
   }, [])
 
-  // Timer countdown from 60
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
+  // // Timer countdown from 60
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setTimeLeft((prev) => {
+  //       if (prev <= 1) {
+  //         clearInterval(timer)
+  //         return 0
+  //       }
+  //       return prev - 1
+  //     })
+  //   }, 1000)
 
-    return () => clearInterval(timer)
-  }, [])
+  //   return () => clearInterval(timer)
+  // }, [])
 
   useEffect(() => {
     pose.onResults((results: any) => {
