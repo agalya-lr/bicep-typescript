@@ -42,6 +42,7 @@ export default function BicepCounter() {
 
   useEffect(() => {
     pose.onResults((results: any) => {
+      console.log("pose results have landmarks:", !!results.poseLandmarks)
       if (!results.poseLandmarks) return
 
       const lm = results.poseLandmarks
@@ -78,6 +79,7 @@ export default function BicepCounter() {
   }, [])
 
   const handleFrame = (video: HTMLVideoElement) => {
+    console.log("sending frame to pose")
     pose.send({ image: video })
   }
 
