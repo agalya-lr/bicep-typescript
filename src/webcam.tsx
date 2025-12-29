@@ -29,17 +29,29 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
 
   useEffect(() => {
     const processFrame = () => {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-        onFrame(videoRef.current)
+      if (videoRef.current) {
+        // Only send frame if video has valid dimensions and is ready
+        const video = videoRef.current
+        if (
+          video.readyState >= video.HAVE_ENOUGH_DATA &&
+          video.videoWidth > 0 &&
+          video.videoHeight > 0
+        ) {
+          onFrame(video)
+        }
       }
       requestRef.current = requestAnimationFrame(processFrame)
     }
     
-    if (videoRef.current) {
-      requestRef.current = requestAnimationFrame(processFrame)
-    }
+    // Start processing after a short delay to ensure video is initialized
+    const startTimer = setTimeout(() => {
+      if (videoRef.current) {
+        requestRef.current = requestAnimationFrame(processFrame)
+      }
+    }, 500)
 
     return () => {
+      clearTimeout(startTimer)
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current)
       }
