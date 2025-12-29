@@ -1,18 +1,10 @@
 import { Pose } from "@mediapipe/pose"
 
-// Load MediaPipe Pose assets (WASM, .data, etc.) from the local
-// public/mediapipe/pose folder. Also force the non-SIMD build
-// to avoid SIMD-related WASM runtime errors.
+// Use CDN with pinned version - clean, simple setup
 export const pose = new Pose({
-  locateFile: (file) => {
-    // If MediaPipe requests the SIMD variant (e.g.
-    // pose_solution_simd_wasm_bin.wasm), redirect to the
-    // non-SIMD file (pose_solution_wasm_bin.wasm).
-    const nonSimdFile = file.replace("simd_", "")
-    return `/mediapipe/pose/${nonSimdFile}`
-  },
+  locateFile: (file) =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`,
 })
-
 
 pose.setOptions({
   modelComplexity: 1,
