@@ -11,6 +11,7 @@ let rightPrev = 160
 export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(60)
   
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
@@ -23,6 +24,21 @@ export default function BicepCounter() {
     leftCountRef.current = leftCount
     rightCountRef.current = rightCount
   }, [leftCount, rightCount])
+
+  // Timer countdown from 60
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     pose.onResults((results: any) => {
@@ -68,6 +84,8 @@ export default function BicepCounter() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Webcam onFrame={handleFrame} />
+      
+      {/* Left Count - Top Left */}
       <div style={{ 
         position: 'absolute', 
         top: 20, 
@@ -75,10 +93,42 @@ export default function BicepCounter() {
         color: 'white', 
         fontSize: '24px',
         fontWeight: 'bold',
-        zIndex: 10
+        zIndex: 10,
+        textAlign: 'center'
       }}>
-        <div>Left: {leftCount}</div>
-        <div>Right: {rightCount}</div>
+        <div style={{ fontSize: '18px', marginBottom: '5px' }}>LEFT BICEP</div>
+        <div style={{ fontSize: '48px' }}>{leftCount}</div>
+      </div>
+
+      {/* Timer - Top Center */}
+      <div style={{ 
+        position: 'absolute', 
+        top: 20, 
+        left: '50%',
+        transform: 'translateX(-50%)',
+        color: 'white', 
+        fontSize: '24px',
+        fontWeight: 'bold',
+        zIndex: 10,
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '18px', marginBottom: '5px' }}>TIMER</div>
+        <div style={{ fontSize: '48px' }}>{timeLeft}</div>
+      </div>
+
+      {/* Right Count - Top Right */}
+      <div style={{ 
+        position: 'absolute', 
+        top: 20, 
+        right: 20, 
+        color: 'white', 
+        fontSize: '24px',
+        fontWeight: 'bold',
+        zIndex: 10,
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '18px', marginBottom: '5px' }}>RIGHT BICEP</div>
+        <div style={{ fontSize: '48px' }}>{rightCount}</div>
       </div>
     </div>
   )
