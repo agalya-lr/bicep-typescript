@@ -1,6 +1,29 @@
 import { useEffect, useState } from "react"
 import { getLeaderboard, type LeaderboardEntry } from "./utils/leaderboard"
 
+/**
+ * Validate and ensure base64 image is properly formatted
+ * Base64 data URLs can be used directly in img src, but we validate here
+ */
+function validateBase64Image(base64String: string): string {
+  if (!base64String) return ""
+  
+  // If it's already a data URL, return as is
+  if (base64String.startsWith("data:image/")) {
+    return base64String
+  }
+  
+  // If it's just base64 without data URL prefix, add it
+  if (base64String.startsWith("/9j/") || base64String.startsWith("iVBORw0KGgo")) {
+    // JPEG or PNG base64
+    const mimeType = base64String.startsWith("/9j/") ? "image/jpeg" : "image/png"
+    return `data:${mimeType};base64,${base64String}`
+  }
+  
+  // Return as is if it looks valid
+  return base64String
+}
+
 type LeaderboardProps = {
   onPlayAgain?: () => void
 }
@@ -119,12 +142,18 @@ export default function Leaderboard({ onPlayAgain }: LeaderboardProps) {
                     background: '#fff'
                   }}>
                     <img
-                      src={entry.playerImage}
+                      src={validateBase64Image(entry.playerImage)}
                       alt={`Player ${index + 1}`}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover'
+                      }}
+                      onError={(e) => {
+                        // If image fails to load, show placeholder
+                        console.warn(`Failed to load image for entry ${index + 1}`)
+                        const target = e.target as HTMLImageElement
+                        target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+"
                       }}
                     />
                   </div>

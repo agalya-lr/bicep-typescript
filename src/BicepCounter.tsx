@@ -91,38 +91,60 @@ export default function BicepCounter() {
 
 
 
-  // Stop processing when timer reaches 0 and save score
+  // Capture face when timer reaches 1 second (before camera stops)
   useEffect(() => {
-    if (timeLeft === 0 && !hasSavedScoreRef.current) {
-      isProcessingRef.current = false // Stop any pending processing
-      
-      // Capture face and save score
-      if (videoRef.current) {
+    if (timeLeft === 1 && !hasSavedScoreRef.current) {
+      // Capture face 1 second before timer ends to ensure video is still active
+      if (videoRef.current && videoRef.current.readyState >= videoRef.current.HAVE_CURRENT_DATA) {
         const totalScore = leftCountRef.current + rightCountRef.current
+        
+        console.log("FaceCapture: Capturing face at 1 second remaining...")
+        console.log("FaceCapture: Video readyState:", videoRef.current.readyState)
+        console.log("FaceCapture: Video dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight)
+        console.log("FaceCapture: Has pose landmarks:", !!lastPoseLandmarksRef.current)
+        
         const faceImage = cropFaceFromVideo(videoRef.current, lastPoseLandmarksRef.current || undefined)
         
         if (faceImage) {
           saveScore(totalScore, faceImage)
-          console.log("Score saved:", totalScore)
+          console.log("Score saved with real face image:", totalScore, "Image length:", faceImage.length)
+          hasSavedScoreRef.current = true
         } else {
-          // Save score even if face capture fails (use placeholder)
+          console.warn("Face capture failed at 1 second, will retry at 0")
+        }
+      }
+    }
+  }, [timeLeft])
+
+  // Stop processing when timer reaches 0 and show leaderboard
+  useEffect(() => {
+    if (timeLeft === 0) {
+      isProcessingRef.current = false // Stop any pending processing
+      
+      // If face wasn't captured at 1 second, try one more time
+      if (!hasSavedScoreRef.current && videoRef.current) {
+        const totalScore = leftCountRef.current + rightCountRef.current
+        
+        console.log("FaceCapture: Final attempt to capture face at 0 seconds...")
+        const faceImage = cropFaceFromVideo(videoRef.current, lastPoseLandmarksRef.current || undefined)
+        
+        if (faceImage) {
+          saveScore(totalScore, faceImage)
+          console.log("Score saved with real face image:", totalScore)
+        } else {
+          // Save score with placeholder if capture still fails
+          console.warn("Face capture failed, using placeholder")
           const placeholderImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+"
           saveScore(totalScore, placeholderImage)
           console.log("Score saved with placeholder image:", totalScore)
         }
-        
         hasSavedScoreRef.current = true
-        
-        // Show leaderboard after a short delay to allow score to be saved
-        setTimeout(() => {
-          setShowLeaderboard(true)
-        }, 500)
-      } else {
-        // If no video, still show leaderboard
-        setTimeout(() => {
-          setShowLeaderboard(true)
-        }, 500)
       }
+      
+      // Show leaderboard after a short delay
+      setTimeout(() => {
+        setShowLeaderboard(true)
+      }, 500)
     }
   }, [timeLeft])
 
