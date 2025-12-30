@@ -23,12 +23,18 @@ export default function BicepCounter() {
   const rightCountRef = useRef(0)
   const isProcessingRef = useRef(false)
   const lastFrameTimeRef = useRef(0)
+  const timeLeftRef = useRef(timeLeft)
   const FRAME_THROTTLE_MS = 33 // ~30fps instead of 60fps
 
   useEffect(() => {
     leftCountRef.current = leftCount
     rightCountRef.current = rightCount
   }, [leftCount, rightCount])
+
+  // Keep timeLeft ref updated
+  useEffect(() => {
+    timeLeftRef.current = timeLeft
+  }, [timeLeft])
 
   // Initialize MediaPipe and wait for it to be ready
   useEffect(() => {
@@ -43,17 +49,29 @@ export default function BicepCounter() {
 
 
 
+  // Stop processing when timer reaches 0
+  useEffect(() => {
+    if (timeLeft === 0) {
+      isProcessingRef.current = false // Stop any pending processing
+    }
+  }, [timeLeft])
+
   useEffect(() => {
     pose.onResults((results: any) => {
+      // Stop detection when timer reaches 0 (use ref to get current value)
+      if (timeLeftRef.current === 0) {
+        return
+      }
+
       if (!results.poseLandmarks) {
         // Only log occasionally to avoid spam
         if (Math.random() < 0.01) {
-          console.log("⏳ Waiting for pose detection...")
+          console.log("Waiting for pose detection...")
         }
         return
       }
       
-      console.log("✅ Pose detected! Processing landmarks...")
+      console.log("Pose detected! Processing landmarks...")
       // Reset processing flag when results are received
       isProcessingRef.current = false
       
@@ -94,6 +112,11 @@ export default function BicepCounter() {
   }, [])
 //html video element from webcam.tsx
   const handleFrame = (video: HTMLVideoElement) => {
+    // Stop detection when timer reaches 0 (use ref to get current value)
+    if (timeLeftRef.current === 0) {
+      return
+    }
+
     // Only send frames if MediaPipe is ready and video has valid dimensions
     if (!isPoseReady) return
     
