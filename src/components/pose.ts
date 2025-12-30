@@ -26,6 +26,6 @@ export const pose = new Pose({
 pose.setOptions({
   modelComplexity: 1,
   smoothLandmarks: true,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5,
+  minDetectionConfidence: 0.7,
+  minTrackingConfidence: 0.7,
 })
