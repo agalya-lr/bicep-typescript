@@ -38,25 +38,19 @@ export default function BicepCounter() {
     return () => clearTimeout(initTimer)
   }, [])
 
-  // // Timer countdown from 60
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTimeLeft((prev) => {
-  //       if (prev <= 1) {
-  //         clearInterval(timer)
-  //         return 0
-  //       }
-  //       return prev - 1
-  //     })
-  //   }, 1000)
 
-  //   return () => clearInterval(timer)
-  // }, [])
 
   useEffect(() => {
     pose.onResults((results: any) => {
-      console.log("pose results have landmarks:", !!results.poseLandmarks)
-      if (!results.poseLandmarks) return
+      if (!results.poseLandmarks) {
+        // Only log occasionally to avoid spam
+        if (Math.random() < 0.01) {
+          console.log("⏳ Waiting for pose detection...")
+        }
+        return
+      }
+      
+      console.log("✅ Pose detected! Processing landmarks...")
 
       const lm = results.poseLandmarks
 
@@ -90,7 +84,7 @@ export default function BicepCounter() {
       console.log("LEFT:", l.count, "RIGHT:", r.count)
     })
   }, [])
-
+//html video element from webcam.tsx
   const handleFrame = (video: HTMLVideoElement) => {
     // Only send frames if MediaPipe is ready and video has valid dimensions
     if (!isPoseReady) return
@@ -109,8 +103,10 @@ export default function BicepCounter() {
       // Send video directly to MediaPipe - simple and clean
       pose.send({ image: video })
     } catch (error) {
-      // Silently catch errors to prevent console spam
-      // MediaPipe will retry on next frame
+      // Log errors to help debug - but don't spam
+      if (error instanceof Error && !error.message.includes('memory access')) {
+        console.error('MediaPipe send error:', error.message)
+      }
     }
   }
 
