@@ -15,7 +15,7 @@ export const pose = new Pose({
       
       // Log the redirect for debugging
       if (file.includes('.wasm') || file.includes('.js')) {
-        console.log(`🔄 Redirecting SIMD file: "${file}" → "${nonSimdFile}"`)
+        console.log(`Redirecting SIMD file: "${file}" → "${nonSimdFile}"`)
       }
     }
     
@@ -29,6 +29,3 @@ pose.setOptions({
   minDetectionConfidence: 0.5,
   minTrackingConfidence: 0.5,
 })
-
-
-
