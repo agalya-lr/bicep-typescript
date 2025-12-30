@@ -12,7 +12,13 @@ export default function Webcam({
   const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: { ideal: 720 },
+        height: { ideal: 1280 },
+        facingMode: 'user' // Front-facing camera
+      } 
+    })
       .then(stream => {
         streamRef.current = stream
         if (videoRef.current) {
