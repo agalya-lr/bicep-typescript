@@ -71,3 +71,32 @@ export default defineConfig([
   },
 ])
 ```
+
+
+1. Webcam captures video frames
+   ↓
+2. webcam.tsx sends frames to BicepCounter (60fps)
+   ↓
+3. BicepCounter throttles to 30fps and sends to MediaPipe
+   ↓
+4. MediaPipe detects pose and returns 33 landmarks
+   ↓
+5. BicepCounter extracts shoulder, elbow, wrist positions
+   ↓
+6. angle.ts calculates elbow angle (0-180°)
+   ↓
+7. smooth.ts smooths the angle values
+   ↓
+8. counter.ts tracks state machine and counts reps
+   ↓
+9. UI displays count and timer
+
+
+
+Arm Extended (160°) → [DOWN] → passedMid = false
+         ↓
+Arm Curling (90°) → [DOWN] → passedMid = true
+         ↓
+Arm Curled (45°) → [UP] → COUNT++ 
+         ↓
+Arm Extending (160°) → [DOWN] → Reset
