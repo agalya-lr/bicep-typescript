@@ -23,7 +23,7 @@ export default function BicepCounter() {
   const rightCountRef = useRef(0)
   const isProcessingRef = useRef(false)
   const lastFrameTimeRef = useRef(0)
-  const FRAME_THROTTLE_MS = 33 // ~30fps instead of 60fps
+  const FRAME_THROTTLE_MS = 60 // ~30fps instead of 60fps
 
   useEffect(() => {
     leftCountRef.current = leftCount

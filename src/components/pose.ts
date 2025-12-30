@@ -9,8 +9,8 @@ export const pose = new Pose({
 pose.setOptions({
   modelComplexity: 1,
   smoothLandmarks: true,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5,
+  minDetectionConfidence: 0.8,
+  minTrackingConfidence: 0.8,
 })
 
 

@@ -5,7 +5,13 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
   const requestRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: { ideal: 720 },
+        height: { ideal: 1280 },
+        facingMode: 'user' // Front-facing camera
+      } 
+    })
       .then(stream => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream
