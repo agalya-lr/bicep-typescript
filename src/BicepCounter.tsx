@@ -21,6 +21,9 @@ export default function BicepCounter() {
   const rightMidRef = useRef(false)
   const leftCountRef = useRef(0)
   const rightCountRef = useRef(0)
+  const isProcessingRef = useRef(false)
+  const lastFrameTimeRef = useRef(0)
+  const FRAME_THROTTLE_MS = 33 // ~30fps instead of 60fps
 
   useEffect(() => {
     leftCountRef.current = leftCount
@@ -55,6 +58,9 @@ export default function BicepCounter() {
 
   useEffect(() => {
     pose.onResults((results: any) => {
+      // Reset processing flag when results are received
+      isProcessingRef.current = false
+      
       console.log("pose results have landmarks:", !!results.poseLandmarks)
       if (!results.poseLandmarks) return
 
@@ -105,12 +111,35 @@ export default function BicepCounter() {
       return
     }
 
+    // Throttle frame processing to avoid overwhelming MediaPipe
+    const now = performance.now()
+    if (now - lastFrameTimeRef.current < FRAME_THROTTLE_MS) {
+      return
+    }
+
+    // Don't send a new frame if MediaPipe is still processing the previous one
+    if (isProcessingRef.current) {
+      return
+    }
+
     try {
+      isProcessingRef.current = true
+      lastFrameTimeRef.current = now
       // Send video directly to MediaPipe - simple and clean
       pose.send({ image: video })
+      
+      // Safety timeout: reset processing flag after 1 second if no results received
+      // This prevents getting stuck if MediaPipe fails silently
+      setTimeout(() => {
+        if (isProcessingRef.current) {
+          console.warn("MediaPipe processing timeout - resetting flag")
+          isProcessingRef.current = false
+        }
+      }, 1000)
     } catch (error) {
-      // Silently catch errors to prevent console spam
-      // MediaPipe will retry on next frame
+      // Reset processing flag on error
+      isProcessingRef.current = false
+      console.error("Error sending frame to MediaPipe:", error)
     }
   }
 
