@@ -15,7 +15,7 @@ let rightPrev = 160
 export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
-  const { timeLeft, reset: resetTimer, start: startTimer } = useTimer(60, true) // Use the timer hook
+  const { timeLeft} = useTimer(60, true) // Use the timer hook
   const [isPoseReady, setIsPoseReady] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   
@@ -24,35 +24,6 @@ export default function BicepCounter() {
     hasSavedScoreRef.current = false
     setShowLeaderboard(false)
   }, [])
-  
-  // Handle Play Again - reset everything
-  const handlePlayAgain = () => {
-    // Reset all game state
-    setLeftCount(0)
-    setRightCount(0)
-    leftCountRef.current = 0
-    rightCountRef.current = 0
-    leftStageRef.current = "down"
-    rightStageRef.current = "down"
-    leftMidRef.current = false
-    rightMidRef.current = false
-    hasSavedScoreRef.current = false
-    lastPoseLandmarksRef.current = null
-    isProcessingRef.current = false
-    
-    // Reset timer
-    resetTimer(60)
-    startTimer()
-    
-    // Hide leaderboard
-    setShowLeaderboard(false)
-    
-    // Reset pose ready state
-    setIsPoseReady(false)
-    setTimeout(() => {
-      setIsPoseReady(true)
-    }, 500)
-  }
   
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
@@ -265,7 +236,7 @@ export default function BicepCounter() {
 
   // Show leaderboard when timer reaches 0
   if (showLeaderboard) {
-    return <Leaderboard onPlayAgain={handlePlayAgain} />
+    return <Leaderboard />
   }
 
   return (

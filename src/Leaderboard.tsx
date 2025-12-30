@@ -24,11 +24,7 @@ function validateBase64Image(base64String: string): string {
   return base64String
 }
 
-type LeaderboardProps = {
-  onPlayAgain?: () => void
-}
-
-export default function Leaderboard({ onPlayAgain }: LeaderboardProps) {
+export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
 
   useEffect(() => {
@@ -190,34 +186,6 @@ export default function Leaderboard({ onPlayAgain }: LeaderboardProps) {
             </div>
           ))}
         </div>
-
-        {/* Play Again Button */}
-        <button
-          onClick={onPlayAgain}
-          style={{
-            padding: '15px 40px',
-            fontSize: '20px',
-            background: '#fff',
-            color: '#000',
-            border: 'none',
-            borderRadius: '25px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-            transition: 'all 0.3s ease',
-            minWidth: '200px'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = '#f0f0f0'
-            e.currentTarget.style.transform = 'scale(1.05)'
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = '#fff'
-            e.currentTarget.style.transform = 'scale(1)'
-          }}
-        >
-          Play Again
-        </button>
       </div>
     </div>
   )
