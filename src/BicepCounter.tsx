@@ -168,7 +168,7 @@ export default function BicepCounter() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Webcam onFrame={handleFrame} />
+      <Webcam onFrame={handleFrame} stopCamera={timeLeft === 0} />
       
       {/* Left Count - Top Left */}
       <div style={{ 
