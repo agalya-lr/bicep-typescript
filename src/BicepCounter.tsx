@@ -41,23 +41,19 @@ export default function BicepCounter() {
     return () => clearTimeout(initTimer)
   }, [])
 
-  // // Timer countdown from 60
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTimeLeft((prev) => {
-  //       if (prev <= 1) {
-  //         clearInterval(timer)
-  //         return 0
-  //       }
-  //       return prev - 1
-  //     })
-  //   }, 1000)
 
-  //   return () => clearInterval(timer)
-  // }, [])
 
   useEffect(() => {
     pose.onResults((results: any) => {
+      if (!results.poseLandmarks) {
+        // Only log occasionally to avoid spam
+        if (Math.random() < 0.01) {
+          console.log("⏳ Waiting for pose detection...")
+        }
+        return
+      }
+      
+      console.log("✅ Pose detected! Processing landmarks...")
       // Reset processing flag when results are received
       isProcessingRef.current = false
       
@@ -96,7 +92,7 @@ export default function BicepCounter() {
       console.log("LEFT:", l.count, "RIGHT:", r.count)
     })
   }, [])
-
+//html video element from webcam.tsx
   const handleFrame = (video: HTMLVideoElement) => {
     // Only send frames if MediaPipe is ready and video has valid dimensions
     if (!isPoseReady) return
@@ -137,6 +133,10 @@ export default function BicepCounter() {
         }
       }, 1000)
     } catch (error) {
+      // Log errors to help debug - but don't spam
+      if (error instanceof Error && !error.message.includes('memory access')) {
+        console.error('MediaPipe send error:', error.message)
+      }
       // Reset processing flag on error
       isProcessingRef.current = false
       console.error("Error sending frame to MediaPipe:", error)
