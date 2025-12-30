@@ -1,12 +1,20 @@
 import { useEffect, useRef } from "react"
 
-export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement) => void }) {
+export default function Webcam({ 
+  onFrame, 
+  stopCamera = false 
+}: { 
+  onFrame: (frame: HTMLVideoElement) => void
+  stopCamera?: boolean 
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const requestRef = useRef<number | undefined>(undefined)
+  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
+        streamRef.current = stream
         if (videoRef.current) {
           videoRef.current.srcObject = stream
           videoRef.current.play()
@@ -20,15 +28,53 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current)
       }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+        streamRef.current = null
+      }
       if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream
-        stream.getTracks().forEach(track => track.stop())
+        videoRef.current.srcObject = null
       }
     }
   }, [])
 
+  // Stop camera when stopCamera prop becomes true
   useEffect(() => {
+    if (stopCamera && streamRef.current) {
+      // Stop frame processing
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current)
+        requestRef.current = undefined
+      }
+      
+      // Stop camera stream
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+      
+      // Clear video source
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
+        videoRef.current.pause()
+      }
+    }
+  }, [stopCamera])
+
+  useEffect(() => {
+    // Don't start processing if camera is stopped
+    if (stopCamera) {
+      return
+    }
+
     const processFrame = () => {
+      // Stop processing if camera was stopped
+      if (stopCamera) {
+        if (requestRef.current) {
+          cancelAnimationFrame(requestRef.current)
+          requestRef.current = undefined
+        }
+        return
+      }
+
       if (videoRef.current) {
         // Only send frame if video has valid dimensions and is ready
         const video = videoRef.current
@@ -45,7 +91,7 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
     
     // Start processing after a short delay to ensure video is initialized
     const startTimer = setTimeout(() => {
-      if (videoRef.current) {
+      if (videoRef.current && !stopCamera) {
         requestRef.current = requestAnimationFrame(processFrame)
       }
     }, 500)
@@ -56,7 +102,7 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
         cancelAnimationFrame(requestRef.current)
       }
     }
-  }, [onFrame])
+  }, [onFrame, stopCamera])
 
   return (
     <video 
