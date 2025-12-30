@@ -134,6 +134,33 @@ export default function BicepCounter() {
     }
   }, [timeLeft])
 
+  // Send END: true to parent when game is over after showing leaderboard
+  useEffect(() => {
+    if (showLeaderboard) {
+      const timeoutId = setTimeout(() => {
+        const finalScore = leftCountRef.current + rightCountRef.current
+        console.log('Game End - Sending END: true to parent', { 
+          score: finalScore, 
+          leftCount: leftCountRef.current,
+          rightCount: rightCountRef.current,
+          timeRemaining: timeLeft 
+        })
+        
+        // Send message to parent window/iframe
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ END: true }, '*')
+        }
+        
+        // Also dispatch custom event for other communication methods
+        window.dispatchEvent(new CustomEvent('gameEnd', { 
+          detail: { END: true, score: finalScore } 
+        }))
+      }, 4000) // Wait 4 seconds after leaderboard is shown
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [showLeaderboard, timeLeft])
+
   useEffect(() => {
     pose.onResults((results: any) => {
       // Stop detection when timer reaches 0 (use ref to get current value)
