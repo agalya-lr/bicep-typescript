@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react"
-import { getLeaderboard, clearLeaderboard, type LeaderboardEntry } from "./utils/leaderboard"
+import { getLeaderboard, type LeaderboardEntry } from "./utils/leaderboard"
 
-export default function Leaderboard() {
+type LeaderboardProps = {
+  onPlayAgain?: () => void
+}
+
+export default function Leaderboard({ onPlayAgain }: LeaderboardProps) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
 
   useEffect(() => {
@@ -26,172 +30,165 @@ export default function Leaderboard() {
     }
   }, [])
 
-  const handleClear = () => {
-    if (window.confirm("Are you sure you want to clear the leaderboard?")) {
-      clearLeaderboard()
-      setEntries([])
-    }
+  // Helper function to get rank suffix
+  const getRankSuffix = (index: number): string => {
+    const rank = index + 1
+    if (rank === 1) return '1st'
+    if (rank === 2) return '2nd'
+    if (rank === 3) return '3rd'
+    return `${rank}th`
   }
+
+  // Ensure we have exactly 6 entries (pad with empty if needed)
+  const displayEntries: (LeaderboardEntry | null)[] = [...entries]
+  while (displayEntries.length < 6) {
+    displayEntries.push(null)
+  }
+  const top6Entries = displayEntries.slice(0, 6)
 
   return (
     <div style={{
       width: '100%',
       height: '100%',
-      background: '#000',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       color: '#fff',
       padding: '40px 20px',
       overflowY: 'auto',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start'
     }}>
       <div style={{
-        maxWidth: '800px',
-        margin: '0 auto'
+        width: '100%',
+        maxWidth: '1200px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }}>
+        {/* Title */}
         <h1 style={{
           textAlign: 'center',
           fontSize: '48px',
-          marginBottom: '40px',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+          marginBottom: '60px',
+          color: '#fff',
+          fontWeight: 'bold',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
         }}>
-          🏆 LEADERBOARD 🏆
+          Bicep Leaderboard
         </h1>
 
-        {entries.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            fontSize: '24px',
-            marginTop: '100px',
-            color: '#888'
-          }}>
-            No scores yet. Play the game to see your ranking!
-          </div>
-        ) : (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px'
-          }}>
-            {entries.map((entry, index) => (
-              <div
-                key={`${entry.timestamp}-${index}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: index === 0 
-                    ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' 
-                    : index === 1
-                    ? 'linear-gradient(135deg, #C0C0C0 0%, #A0A0A0 100%)'
-                    : index === 2
-                    ? 'linear-gradient(135deg, #CD7F32 0%, #8B4513 100%)'
-                    : 'linear-gradient(135deg, #333 0%, #222 100%)',
-                  padding: '20px',
-                  borderRadius: '15px',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-                  border: index < 3 ? '3px solid #fff' : '1px solid #555'
-                }}
-              >
-                {/* Rank */}
-                <div style={{
-                  fontSize: '48px',
-                  fontWeight: 'bold',
-                  minWidth: '80px',
-                  textAlign: 'center',
-                  color: index < 3 ? '#000' : '#fff',
-                  textShadow: index < 3 ? 'none' : '2px 2px 4px rgba(0,0,0,0.5)'
-                }}>
-                  #{index + 1}
-                </div>
-
-                {/* Player Image */}
-                <div style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  margin: '0 20px',
-                  border: '3px solid #fff',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                  flexShrink: 0
-                }}>
-                  <img
-                    src={entry.playerImage}
-                    alt={`Player ${index + 1}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                </div>
-
-                {/* Score */}
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}>
-                  <div style={{
-                    fontSize: '36px',
-                    fontWeight: 'bold',
-                    color: index < 3 ? '#000' : '#fff',
-                    textShadow: index < 3 ? 'none' : '2px 2px 4px rgba(0,0,0,0.5)'
-                  }}>
-                    {entry.score} reps
-                  </div>
-                  <div style={{
-                    fontSize: '14px',
-                    color: index < 3 ? '#333' : '#aaa',
-                    marginTop: '5px'
-                  }}>
-                    {new Date(entry.timestamp).toLocaleString()}
-                  </div>
-                </div>
-
-                {/* Medal for top 3 */}
-                {index < 3 && (
-                  <div style={{
-                    fontSize: '40px',
-                    marginLeft: '10px'
-                  }}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {entries.length > 0 && (
-          <div style={{
-            textAlign: 'center',
-            marginTop: '40px'
-          }}>
-            <button
-              onClick={handleClear}
+        {/* Grid Layout - 2 rows, 3 columns */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+          gap: '30px',
+          width: '100%',
+          maxWidth: '900px',
+          marginBottom: '60px'
+        }}>
+          {top6Entries.map((entry, index) => (
+            <div
+              key={entry ? `${entry.timestamp}-${index}` : `empty-${index}`}
               style={{
-                padding: '12px 24px',
-                fontSize: '18px',
-                background: '#d32f2f',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = '#b71c1c'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = '#d32f2f'
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+                background: entry ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '15px',
+                backdropFilter: 'blur(10px)',
+                border: entry ? '2px solid rgba(255, 255, 255, 0.2)' : '2px dashed rgba(255, 255, 255, 0.1)',
+                minHeight: '200px'
               }}
             >
-              Clear Leaderboard
-            </button>
-          </div>
-        )}
+              {entry ? (
+                <>
+                  {/* Player Image */}
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    marginBottom: '15px',
+                    border: '4px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                    background: '#fff'
+                  }}>
+                    <img
+                      src={entry.playerImage}
+                      alt={`Player ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  </div>
+
+                  {/* Rank */}
+                  <div style={{
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    color: '#8B5CF6', // Purple color
+                    // marginBottom: '8px',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
+                  }}>
+                    {getRankSuffix(index)}
+                  </div>
+
+                  {/* Score */}
+                  <div style={{
+                    fontSize: '20px',
+                    color: '#fff',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+                  }}>
+                    Score: {entry.score}
+                  </div>
+                </>
+              ) : (
+                <div style={{
+                  fontSize: '18px',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  textAlign: 'center'
+                }}>
+                  No Score
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Play Again Button */}
+        <button
+          onClick={onPlayAgain}
+          style={{
+            padding: '15px 40px',
+            fontSize: '20px',
+            background: '#fff',
+            color: '#000',
+            border: 'none',
+            borderRadius: '25px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            transition: 'all 0.3s ease',
+            minWidth: '200px'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = '#f0f0f0'
+            e.currentTarget.style.transform = 'scale(1.05)'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = '#fff'
+            e.currentTarget.style.transform = 'scale(1)'
+          }}
+        >
+          Play Again
+        </button>
       </div>
     </div>
   )

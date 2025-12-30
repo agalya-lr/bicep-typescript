@@ -7,6 +7,7 @@ import { useTimer } from "./components/timer"
 import Webcam from "./webcam"
 import { saveScore } from "./utils/leaderboard"
 import { cropFaceFromVideo } from "./utils/faceCapture"
+import Leaderboard from "./Leaderboard"
 
 let leftPrev = 160
 let rightPrev = 160
@@ -14,13 +15,44 @@ let rightPrev = 160
 export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
-  const { timeLeft } = useTimer(60, true) // Use the timer hook
+  const { timeLeft, reset: resetTimer, start: startTimer } = useTimer(60, true) // Use the timer hook
   const [isPoseReady, setIsPoseReady] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   
   // Reset saved score flag when component mounts or timer resets
   useEffect(() => {
     hasSavedScoreRef.current = false
+    setShowLeaderboard(false)
   }, [])
+  
+  // Handle Play Again - reset everything
+  const handlePlayAgain = () => {
+    // Reset all game state
+    setLeftCount(0)
+    setRightCount(0)
+    leftCountRef.current = 0
+    rightCountRef.current = 0
+    leftStageRef.current = "down"
+    rightStageRef.current = "down"
+    leftMidRef.current = false
+    rightMidRef.current = false
+    hasSavedScoreRef.current = false
+    lastPoseLandmarksRef.current = null
+    isProcessingRef.current = false
+    
+    // Reset timer
+    resetTimer(60)
+    startTimer()
+    
+    // Hide leaderboard
+    setShowLeaderboard(false)
+    
+    // Reset pose ready state
+    setIsPoseReady(false)
+    setTimeout(() => {
+      setIsPoseReady(true)
+    }, 500)
+  }
   
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
@@ -80,6 +112,16 @@ export default function BicepCounter() {
         }
         
         hasSavedScoreRef.current = true
+        
+        // Show leaderboard after a short delay to allow score to be saved
+        setTimeout(() => {
+          setShowLeaderboard(true)
+        }, 500)
+      } else {
+        // If no video, still show leaderboard
+        setTimeout(() => {
+          setShowLeaderboard(true)
+        }, 500)
       }
     }
   }, [timeLeft])
@@ -197,6 +239,11 @@ export default function BicepCounter() {
       isProcessingRef.current = false
       console.error("Error sending frame to MediaPipe:", error)
     }
+  }
+
+  // Show leaderboard when timer reaches 0
+  if (showLeaderboard) {
+    return <Leaderboard onPlayAgain={handlePlayAgain} />
   }
 
   return (
