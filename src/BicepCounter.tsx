@@ -5,6 +5,8 @@ import { smooth } from "./components/smooth"
 import { updateCounter } from "./components/counter"
 import { useTimer } from "./components/timer"
 import Webcam from "./webcam"
+import { saveScore } from "./utils/leaderboard"
+import { cropFaceFromVideo } from "./utils/faceCapture"
 
 let leftPrev = 160
 let rightPrev = 160
@@ -15,6 +17,11 @@ export default function BicepCounter() {
   const { timeLeft } = useTimer(60, true) // Use the timer hook
   const [isPoseReady, setIsPoseReady] = useState(false)
   
+  // Reset saved score flag when component mounts or timer resets
+  useEffect(() => {
+    hasSavedScoreRef.current = false
+  }, [])
+  
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
   const leftMidRef = useRef(false)
@@ -24,6 +31,9 @@ export default function BicepCounter() {
   const isProcessingRef = useRef(false)
   const lastFrameTimeRef = useRef(0)
   const timeLeftRef = useRef(timeLeft)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const lastPoseLandmarksRef = useRef<any[] | null>(null)
+  const hasSavedScoreRef = useRef(false)
   const FRAME_THROTTLE_MS = 60 // ~30fps instead of 60fps
 
   useEffect(() => {
@@ -49,10 +59,28 @@ export default function BicepCounter() {
 
 
 
-  // Stop processing when timer reaches 0
+  // Stop processing when timer reaches 0 and save score
   useEffect(() => {
-    if (timeLeft === 0) {
+    if (timeLeft === 0 && !hasSavedScoreRef.current) {
       isProcessingRef.current = false // Stop any pending processing
+      
+      // Capture face and save score
+      if (videoRef.current) {
+        const totalScore = leftCountRef.current + rightCountRef.current
+        const faceImage = cropFaceFromVideo(videoRef.current, lastPoseLandmarksRef.current || undefined)
+        
+        if (faceImage) {
+          saveScore(totalScore, faceImage)
+          console.log("Score saved:", totalScore)
+        } else {
+          // Save score even if face capture fails (use placeholder)
+          const placeholderImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+"
+          saveScore(totalScore, placeholderImage)
+          console.log("Score saved with placeholder image:", totalScore)
+        }
+        
+        hasSavedScoreRef.current = true
+      }
     }
   }, [timeLeft])
 
@@ -79,6 +107,9 @@ export default function BicepCounter() {
       if (!results.poseLandmarks) return
 
       const lm = results.poseLandmarks
+      
+      // Store last pose landmarks for face cropping
+      lastPoseLandmarksRef.current = lm
 
       const ls = [lm[11].x, lm[11].y]
       const le = [lm[13].x, lm[13].y]
@@ -112,6 +143,8 @@ export default function BicepCounter() {
   }, [])
 //html video element from webcam.tsx
   const handleFrame = (video: HTMLVideoElement) => {
+    // Store video reference for face capture
+    videoRef.current = video
     // Stop detection when timer reaches 0 (use ref to get current value)
     if (timeLeftRef.current === 0) {
       return
