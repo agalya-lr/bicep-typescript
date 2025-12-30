@@ -8,6 +8,7 @@ import Webcam from "./webcam"
 import { saveScore } from "./utils/leaderboard"
 import { cropFaceFromVideo } from "./utils/faceCapture"
 import Leaderboard from "./Leaderboard"
+import InstructionScreen from "./InstructionScreen"
 
 let leftPrev = 160
 let rightPrev = 160
@@ -15,15 +16,29 @@ let rightPrev = 160
 export default function BicepCounter() {
   const [leftCount, setLeftCount] = useState(0)
   const [rightCount, setRightCount] = useState(0)
-  const { timeLeft} = useTimer(60, true) // Use the timer hook
+  const { timeLeft, start: startTimer, reset: resetTimer} = useTimer(60, false) // Don't auto-start, wait for instructions
   const [isPoseReady, setIsPoseReady] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(true)
   
   // Reset saved score flag when component mounts or timer resets
   useEffect(() => {
     hasSavedScoreRef.current = false
     setShowLeaderboard(false)
   }, [])
+  
+  // Handle instruction screen completion - start the game
+  const handleInstructionsComplete = () => {
+    console.log("Instructions completed, starting bicep detection...")
+    setShowInstructions(false)
+    
+    // Reset and start timer after instructions
+    resetTimer(60)
+    setTimeout(() => {
+      startTimer()
+      console.log("Game started - timer running")
+    }, 500)
+  }
   
   const leftStageRef = useRef<"up" | "down">("down")
   const rightStageRef = useRef<"up" | "down">("down")
@@ -232,6 +247,11 @@ export default function BicepCounter() {
       isProcessingRef.current = false
       console.error("Error sending frame to MediaPipe:", error)
     }
+  }
+
+  // Show instruction screen first (welcome for 5s, then instructions for 5s)
+  if (showInstructions) {
+    return <InstructionScreen onComplete={handleInstructionsComplete} />
   }
 
   // Show leaderboard when timer reaches 0
