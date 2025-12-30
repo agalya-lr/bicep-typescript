@@ -37,7 +37,7 @@ export default function Webcam({ onFrame }: { onFrame: (frame: HTMLVideoElement)
           video.videoWidth > 0 &&
           video.videoHeight > 0
         ) {
-          onFrame(video)
+          onFrame(video) //passes html video element to the onFrame function  
         }
       }
       requestRef.current = requestAnimationFrame(processFrame)
