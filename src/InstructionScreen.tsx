@@ -61,9 +61,6 @@ export default function InstructionScreen({ onComplete }: InstructionScreenProps
       width: '100vw',
       height: '100vh',
       background: '#000',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -73,7 +70,8 @@ export default function InstructionScreen({ onComplete }: InstructionScreenProps
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'contain',
+          objectFit: 'cover',
+          objectPosition: 'center',
           opacity: showPoster ? 1 : 0,
           transition: 'opacity 0.3s ease-in-out'
         }}
