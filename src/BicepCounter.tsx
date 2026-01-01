@@ -206,38 +206,58 @@ export default function BicepCounter() {
       // Store last pose landmarks for face cropping
       lastPoseLandmarksRef.current = lm
 
-      const ls = [lm[11].x, lm[11].y]
-      const le = [lm[13].x, lm[13].y]
-      const lw = [lm[15].x, lm[15].y]
+      // Extract landmarks with visibility scores
+      // MediaPipe provides visibility (0-1) indicating detection confidence
+      const ls_landmark = lm[11] // Left shoulder
+      const le_landmark = lm[13] // Left elbow
+      const lw_landmark = lm[15] // Left wrist
+      const rs_landmark = lm[12] // Right shoulder
+      const re_landmark = lm[14] // Right elbow
+      const rw_landmark = lm[16] // Right wrist
 
-      const rs = [lm[12].x, lm[12].y]
-      const re = [lm[14].x, lm[14].y]
-      const rw = [lm[16].x, lm[16].y]
+      // Check visibility of all landmarks (threshold: 0.5)
+      // Only process if all three landmarks (shoulder, elbow, wrist) are visible
+      const leftVisible = (ls_landmark.visibility || 0) > 0.5 && (le_landmark.visibility || 0) > 0.5 && (lw_landmark.visibility || 0) > 0.5
 
-      const leftRaw = calculateAngle(ls, le, lw)
-      const rightRaw = calculateAngle(rs, re, rw)
+      const rightVisible = (rs_landmark.visibility || 0) > 0.5 && (re_landmark.visibility || 0) > 0.5 && (rw_landmark.visibility || 0) > 0.5
 
-      const leftAngle = smooth(leftRaw, leftPrev)
-      const rightAngle = smooth(rightRaw, rightPrev)
+      // Process left arm only if all landmarks are visible
+      if (leftVisible) {
+        const ls = [ls_landmark.x, ls_landmark.y]
+        const le = [le_landmark.x, le_landmark.y]
+        const lw = [lw_landmark.x, lw_landmark.y]
 
-      leftPrev = leftAngle
-      rightPrev = rightAngle
+        const leftRaw = calculateAngle(ls, le, lw)
+        const leftAngle = smooth(leftRaw, leftPrev)
+        leftPrev = leftAngle
 
-      const l = updateCounter(leftAngle, leftStageRef.current, leftCountRef.current, leftMidRef.current)
-      if (l.count !== leftCountRef.current){
-        setLeftCount(l.count)
+        const l = updateCounter(leftAngle, leftStageRef.current, leftCountRef.current, leftMidRef.current)
+        if (l.count !== leftCountRef.current){
+          setLeftCount(l.count)
+        }
+        leftStageRef.current = l.stage
+        leftMidRef.current = l.passedMid
       }
-      leftStageRef.current = l.stage
-      leftMidRef.current = l.passedMid
 
-      const r = updateCounter(rightAngle, rightStageRef.current, rightCountRef.current, rightMidRef.current)
-      if (r.count !== rightCountRef.current) {
-        setRightCount(r.count)
+      // Process right arm only if all landmarks are visible
+      if (rightVisible) {
+        const rs = [rs_landmark.x, rs_landmark.y]
+        const re = [re_landmark.x, re_landmark.y]
+        const rw = [rw_landmark.x, rw_landmark.y]
+
+        const rightRaw = calculateAngle(rs, re, rw)
+        const rightAngle = smooth(rightRaw, rightPrev)
+        rightPrev = rightAngle
+
+        const r = updateCounter(rightAngle, rightStageRef.current, rightCountRef.current, rightMidRef.current)
+        if (r.count !== rightCountRef.current) {
+          setRightCount(r.count)
+        }
+        rightStageRef.current = r.stage
+        rightMidRef.current = r.passedMid
       }
-      rightStageRef.current = r.stage
-      rightMidRef.current = r.passedMid
 
-      console.log("LEFT:", l.count, "RIGHT:", r.count)
+      console.log("LEFT:", leftCountRef.current, "RIGHT:", rightCountRef.current)
     })
   }, [])
 //html video element from webcam.tsx
