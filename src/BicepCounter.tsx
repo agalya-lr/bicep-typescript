@@ -52,7 +52,7 @@ export default function BicepCounter() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const lastPoseLandmarksRef = useRef<any[] | null>(null)
   const hasSavedScoreRef = useRef(false)
-  const FRAME_THROTTLE_MS = 60 // ~30fps instead of 60fps
+  const FRAME_THROTTLE_MS = 16.67 // ~60fps (1000ms / 60fps = 16.67ms per frame)
 
   useEffect(() => {
     leftCountRef.current = leftCount
@@ -224,12 +224,16 @@ export default function BicepCounter() {
       rightPrev = rightAngle
 
       const l = updateCounter(leftAngle, leftStageRef.current, leftCountRef.current, leftMidRef.current)
-      setLeftCount(l.count)
+      if (l.count !== leftCountRef.current){
+        setLeftCount(l.count)
+      }
       leftStageRef.current = l.stage
       leftMidRef.current = l.passedMid
 
       const r = updateCounter(rightAngle, rightStageRef.current, rightCountRef.current, rightMidRef.current)
-      setRightCount(r.count)
+      if (r.count !== rightCountRef.current) {
+        setRightCount(r.count)
+      }
       rightStageRef.current = r.stage
       rightMidRef.current = r.passedMid
 
