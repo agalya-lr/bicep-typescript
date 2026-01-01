@@ -264,7 +264,7 @@ export default function BicepCounter() {
           console.warn("MediaPipe processing timeout - resetting flag")
           isProcessingRef.current = false
         }
-      }, 1000)
+      }, 3000)
     } catch (error) {
       // Log errors to help debug - but don't spam
       if (error instanceof Error && !error.message.includes('memory access')) {
