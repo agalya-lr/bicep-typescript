@@ -66,13 +66,31 @@ export default function BicepCounter() {
 
   // Initialize MediaPipe and wait for it to be ready
   useEffect(() => {
-    // Wait longer for MediaPipe to fully initialize and load all assets
-    const initTimer = setTimeout(() => {
-      setIsPoseReady(true)
-      console.log("MediaPipe Pose is ready - starting frame processing")
-    }, 3000) // Give MediaPipe 3 seconds to load assets and avoid SIMD issues
+    let isMounted = true
+    
+    // Properly initialize MediaPipe and wait for it to be fully ready
+    // This prevents "Module.arguments" WASM initialization errors
+    pose.initialize()
+      .then(() => {
+        if (isMounted) {
+          setIsPoseReady(true)
+          console.log("MediaPipe Pose initialized and ready - starting frame processing")
+        }
+      })
+      .catch((error) => {
+        console.error("MediaPipe initialization error:", error)
+        // Fallback: set ready after delay if initialization fails
+        if (isMounted) {
+          setTimeout(() => {
+            setIsPoseReady(true)
+            console.warn("MediaPipe initialization had issues, but continuing with fallback...")
+          }, 3000)
+        }
+      })
 
-    return () => clearTimeout(initTimer)
+    return () => {
+      isMounted = false
+    }
   }, [])
 
 
